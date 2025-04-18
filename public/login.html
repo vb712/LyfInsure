@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Life Insurance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+      body {
+	background: linear-gradient(-45deg, #000000,#000000, #902119, #ec723a);
+	background-size: 300% 300%;
+	animation: gradient 14s ease infinite;
+   overflow: hidden;
+}   
+span{
+   display: inline-block;
+   font-size: 1.3rem;
+   font-family: cursive;
+   color: aliceblue;
+   margin: .9rem 3rem;
+}
+nav{
+   font-size: 1.2rem;
+}
+.nav-ul{
+   display: inline-flex;
+ position: absolute;
+ transform: translate(+10%);
+ top: 0;
+ right: 30px;
+ margin: .9rem;
+}
+
+nav a{
+   font-family: cursive;
+   color:#d4f3fd  ;
+   padding: .8rem;
+   justify-content: right;
+} 
+
+.active{
+color:#b5fcb5 ;
+}
+
+nav a:hover{
+   color: darkturquoise;
+}
+
+/* Login button styles for login page */
+.login-page-btn {
+  background: linear-gradient(to right, #641616, #000000);
+
+   color: white;
+   padding: 8px 15px;
+   border-radius: 20px;
+   transition: all 0.3s ease;
+}
+
+.login-page-btn:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+   color: white;
+}
+
+@keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="logo">
+    <span>LyfInsure</span>
+  </div>
+  <nav class="navbar">
+    <ul class="nav-ul">
+        <li class="nav"><a href="homepage.html" id="#1" class="active">Home</a></li>
+        <li class="nav"><a href="dashboard.html" id="#1">Dashboard</a></li>
+        <li class="nav"><a href="index.html" id="#1">Plans</a></li>
+        <li class="nav"><a href="vr.html" id="#1" class="contact">VR</a></li>
+        <li class="nav"><a href="login.html" id="#1" class="login-page-btn">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="flex mt-10 items-center justify-center">
+    <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl p-8 w-full max-w-md">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">Welcome Back!</h2>
+      
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <input id="loginEmail" type="email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+        
+        <div>
+          <input id="loginPass" type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="rememberMe" type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300" />
+            <label for="rememberMe" class="ml-2 text-white">Remember me</label>
+          </div>
+        </div>
+
+        <button type="submit" id="login" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium">
+          Login
+        </button>
+
+        <div class="text-center">
+          <p class="text-white">Don't have an account?</p>
+          <a href="register.html" class="text-blue-400 hover:text-blue-300 font-medium">Register here</a>
+        </div>
+
+        <p id="loginMsg" class="text-sm text-red-600 text-center"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Check if there are stored credentials
+      const storedEmail = localStorage.getItem('rememberedEmail');
+      if (storedEmail) {
+        $('#loginEmail').val(storedEmail);
+        $('#rememberMe').prop('checked', true);
+      }
+
+      $('#loginForm').submit(function(e) {
+        e.preventDefault();
+        
+        const email = $('#loginEmail').val();
+        const password = $('#loginPass').val();
+        const rememberMe = $('#rememberMe').is(':checked');
+
+        console.log('Attempting login with:', { email, rememberMe });
+
+        $.ajax({
+          url: '../backend/login.php',
+          type: 'POST',
+          data: {
+            email: email,
+            password: password,
+            remember_me: rememberMe
+          },
+          dataType: 'json',
+          success: function(response) {
+            console.log('Server response:', response);
+            if (response.status === "success") {
+              // Store user data in localStorage
+              const userData = {
+                email: email,
+                name: response.name
+              };
+              localStorage.setItem('user', JSON.stringify(userData));
+              
+              // Store email if remember me is checked
+              if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+              } else {
+                localStorage.removeItem('rememberedEmail');
+              }
+              
+              window.location.href = "dashboard.html";
+            } else {
+              $('#loginMsg').text(response.message || "Login failed");
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('AJAX error:', status, error);
+            console.log('Response:', xhr.responseText);
+            $('#loginMsg').text("Error connecting to server");
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

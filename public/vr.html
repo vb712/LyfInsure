@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Life Insurance VR Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe-event-set-component/5.0.0/aframe-event-set-component.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe-animation-component/5.1.2/aframe-animation-component.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe-particle-system-component/1.1.3/aframe-particle-system-component.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 100;
+      }
+      .exit-vr-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: none;
+      }
+      .info-panel {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        z-index: 1000;
+        max-width: 300px;
+      }
+      .hover-glow {
+        transition: all 0.3s ease;
+      }
+      .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+      .click-feedback {
+        animation: pulse 0.5s ease;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      .plan-text {
+        font-size: 0.2;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.1;
+        border-radius: 0.1;
+      }
+      .title-text {
+        font-size: 0.3;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.2;
+        border-radius: 0.2;
+      }
+      .info-text {
+        font-size: 0.15;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.1;
+        border-radius: 0.1;
+      }
+      .plan-title {
+        font-size: 0.4;
+        color: #FFFFFF;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.2;
+        border-radius: 0.2;
+        width: 3.5;
+        text-align: center;
+      }
+      .plan-premium {
+        font-size: 0.3;
+        color: #FFD700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.15;
+        border-radius: 0.15;
+        width: 3.5;
+        text-align: center;
+        margin-top: 0.2;
+      }
+      .plan-description {
+        font-size: 0.15;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.1;
+        border-radius: 0.1;
+        width: 2.5;
+        text-align: center;
+      }
+      .plan-details {
+        font-size: 0.12;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.1;
+        border-radius: 0.1;
+        width: 2.5;
+        text-align: left;
+      }
+      .plan-highlight {
+        color: #FFD700;
+        font-weight: bold;
+      }
+      .plan-box {
+        width: 4;
+        height: 2;
+        depth: 0.2;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-0.1px); }
+        100% { transform: translateY(0px); }
+      }
+      .floating-text {
+        font-size: 0.3;
+        color: #FFFFFF;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.15;
+        border-radius: 0.15;
+        width: 3;
+        text-align: center;
+        animation: float 3s ease-in-out infinite;
+      }
+      .floating-premium {
+        font-size: 0.25;
+        color: #FFD700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 0.1;
+        border-radius: 0.1;
+        width: 2.5;
+        text-align: center;
+        margin-top: 0.2;
+        animation: float 3s ease-in-out infinite;
+      }
+      .glow-orb {
+        animation: pulse 2s ease-in-out infinite;
+      }
+      .plan-container {
+        animation: rotate 20s linear infinite;
+      }
+      @keyframes pulse {
+        0% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.1); }
+        100% { opacity: 0.5; transform: scale(1); }
+      }
+      @keyframes rotate {
+        from { transform: rotateY(0); }
+        to { transform: rotateY(360deg); }
+      }
+      .floating-text {
+        animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
+      }
+      .floating-premium {
+        animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-900 text-white">
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-spinner"></div>
+      <p class="mt-4 text-xl">Loading VR Experience...</p>
+    </div>
+
+    <button id="exitVR" class="exit-vr-button">Exit VR</button>
+
+    <div class="info-panel">
+      <h3 class="text-lg font-bold mb-2">Welcome to Insurance VR</h3>
+      <p class="text-sm">Explore our insurance plans in this immersive environment. Click on plans to learn more.</p>
+    </div>
+
+    <header class="p-4 bg-blue-700 text-center text-xl font-bold">
+      Virtual Insurance Tour 🚀
+    </header>
+
+    <a-scene embedded>
+      <a-sky color="#000033"></a-sky>
+      <a-plane rotation="-90 0 0" width="30" height="30" color="#001133" material="metalness: 0.2; roughness: 0.8"></a-plane>
+      <a-entity particle-system="preset: star; particleCount: 3000; color: #FFFFFF; size: 0.1; velocityValue: 0 0 0; accelerationValue: 0 0 0; positionSpread: 20 20 20"></a-entity>
+      <a-sphere position="0 10 -20" radius="2" color="#F5F5DC" emissive="#F5F5DC" emissive-intensity="0.8">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="100000" repeat="indefinite" easing="linear"></a-animation>
+      </a-sphere>
+      <a-entity fog="type: exponential; color: #000033; density: 0.1"></a-entity>
+      <a-entity camera look-controls wasd-controls position="0 1.6 0">
+        <a-entity cursor="fuse: true; fuseTimeout: 800"
+                  position="0 0 -1"
+                  geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                  material="color: white; shader: flat">
+        </a-entity>
+      </a-entity>
+      <a-entity position="-6 0 -4" class="plan-container">
+        <a-sphere class="glow-orb" position="0 1 0" radius="0.3" color="#4CC3D9" opacity="0.5"></a-sphere>
+        <a-sphere class="glow-orb" position="-0.5 0.8 0" radius="0.2" color="#FFC65D" opacity="0.5"></a-sphere>
+        <a-sphere class="glow-orb" position="0.5 0.8 0" radius="0.2" color="#FF6B6B" opacity="0.5"></a-sphere>
+        <a-text value="Premium Family Shield" class="floating-text" position="0 3.5 0" align="center"></a-text>
+        <a-text value="₹4500/year" class="floating-premium" position="0 3 0" align="center"></a-text>
+        <a-cylinder position="0 1 0" radius="0.2" height="1.8" color="#4CC3D9"
+                    animation__hover="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 300; easing: easeInOutQuad"
+                    animation__unhover="property: scale; from: 1.1 1.1 1.1; to: 1 1 1; startEvents: mouseleave; dur: 300; easing: easeInOutQuad"
+                    class="hover-glow">
+          <a-text value="Parent" class="plan-text" align="center" position="0 1 0.1" width="1"></a-text>
+        </a-cylinder>
+        <a-cylinder position="-0.5 0.8 0" radius="0.15" height="1.2" color="#FFC65D"
+                    animation__hover="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 300; easing: easeInOutQuad"
+                    animation__unhover="property: scale; from: 1.1 1.1 1.1; to: 1 1 1; startEvents: mouseleave; dur: 300; easing: easeInOutQuad"
+                    class="hover-glow">
+          <a-text value="Child 1" class="plan-text" align="center" position="0 0.6 0.1" width="1"></a-text>
+        </a-cylinder>
+        <a-cylinder position="0.5 0.8 0" radius="0.15" height="1.2" color="#FF6B6B"
+                    animation__hover="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 300; easing: easeInOutQuad"
+                    animation__unhover="property: scale; from: 1.1 1.1 1.1; to: 1 1 1; startEvents: mouseleave; dur: 300; easing: easeInOutQuad"
+                    class="hover-glow">
+          <a-text value="Child 2" class="plan-text" align="center" position="0 0.6 0.1" width="1"></a-text>
+        </a-cylinder>
+        <a-entity id="planA"
+                  geometry="primitive: plane; width: 1.5; height: 0.4"
+                  material="color: #FF7F00; opacity: 0.9"
+                  position="0 2.5 0"
+                  class="clickable hover-glow"
+                  animation__click="property: scale; from: 1 1 1; to: 1.2 1.2 1.2; startEvents: click; dur: 200; easing: easeInOutQuad"
+                  animation__unclick="property: scale; from: 1.2 1.2 1.2; to: 1 1 1; startEvents: animationcomplete__click; dur: 200; easing: easeInOutQuad">
+          <a-text value="Buy Now" class="plan-text" text-align="center" position="0 0 0.01" width="2"></a-text>
+        </a-entity>
+        <a-light type="spot" angle="30" penumbra="0.5" intensity="0.5" position="0 5 0" color="#4CC3D9"></a-light>
+      </a-entity>
+      <a-entity position="0 0 -4" class="plan-container">
+        <a-sphere class="glow-orb" position="0 1 0" radius="0.3" color="#FFC65D" opacity="0.5"></a-sphere>
+        <a-text value="Senior Citizen Plan" class="floating-text" position="0 3.5 0" align="center"></a-text>
+        <a-text value="₹3000/year" class="floating-premium" position="0 3 0" align="center"></a-text>
+        <a-cylinder position="0 1 0" radius="0.25" height="1.8" color="#FFC65D"
+                    animation__hover="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 300; easing: easeInOutQuad"
+                    animation__unhover="property: scale; from: 1.1 1.1 1.1; to: 1 1 1; startEvents: mouseleave; dur: 300; easing: easeInOutQuad"
+                    class="hover-glow">
+          <a-text value="Senior" class="plan-text" align="center" position="0 1 0.1" width="1"></a-text>
+        </a-cylinder>
+        <a-entity id="planB"
+                  geometry="primitive: plane; width: 1.5; height: 0.4"
+                  material="color: #FF7F00; opacity: 0.9"
+                  position="0 2.5 0"
+                  class="clickable hover-glow"
+                  animation__click="property: scale; from: 1 1 1; to: 1.2 1.2 1.2; startEvents: click; dur: 200; easing: easeInOutQuad"
+                  animation__unclick="property: scale; from: 1.2 1.2 1.2; to: 1 1 1; startEvents: animationcomplete__click; dur: 200; easing: easeInOutQuad">
+          <a-text value="Buy Now" class="plan-text" align="center" position="0 0 0.01" width="2"></a-text>
+        </a-entity>
+        <a-light type="spot" angle="30" penumbra="0.5" intensity="0.5" position="0 5 0" color="#FFC65D"></a-light>
+      </a-entity>
+      <a-entity position="6 0 -4" class="plan-container">
+        <a-sphere class="glow-orb" position="0 1 0" radius="0.3" color="#FF6B6B" opacity="0.5"></a-sphere>
+        <a-text value="Basic Life Cover" class="floating-text" position="0 3.5 0" align="center"></a-text>
+        <a-text value="₹2000/year" class="floating-premium" position="0 3 0" align="center"></a-text>
+        <a-cylinder position="0 1 0" radius="0.25" height="1.8" color="#FF6B6B"
+                    animation__hover="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; startEvents: mouseenter; dur: 300; easing: easeInOutQuad"
+                    animation__unhover="property: scale; from: 1.1 1.1 1.1; to: 1 1 1; startEvents: mouseleave; dur: 300; easing: easeInOutQuad"
+                    class="hover-glow">
+          <a-text value="Basic" class="plan-text" align="center" position="0 1 0.1" width="1"></a-text>
+        </a-cylinder>
+        <a-entity id="planC"
+                  geometry="primitive: plane; width: 1.5; height: 0.4"
+                  material="color: #FF7F00; opacity: 0.9"
+                  position="0 2.5 0"
+                  class="clickable hover-glow"
+                  animation__click="property: scale; from: 1 1 1; to: 1.2 1.2 1.2; startEvents: click; dur: 200; easing: easeInOutQuad"
+                  animation__unclick="property: scale; from: 1.2 1.2 1.2; to: 1 1 1; startEvents: animationcomplete__click; dur: 200; easing: easeInOutQuad">
+          <a-text value="Buy Now" class="plan-text" text-align="center" position="0 0 0.01" width="2"></a-text>
+        </a-entity>
+        <a-light type="spot" angle="30" penumbra="0.5" intensity="0.5" position="0 5 0" color="#FF6B6B"></a-light>
+      </a-entity>
+      <a-light type="ambient" color="#4455AA" intensity="0.3"></a-light>
+      <a-light type="point" intensity="0.5" position="0 10 -20" color="#F5F5DC"></a-light>
+      <a-light type="point" intensity="0.3" position="0 5 0" color="#FFFFFF"></a-light>
+      <a-entity particle-system="preset: snow; particleCount: 1000; color: #FFFFFF; size: 0.05; velocityValue: 0 0.1 0; accelerationValue: 0 0.1 0; positionSpread: 20 20 20"></a-entity>
+    </a-scene>
+
+    <div class="instructions">
+      <p>Use WASD to move and mouse to look around. Click on plans to learn more.</p>
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="index.html" class="text-blue-400 underline">Back to Dashboard</a>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+        const scene = document.querySelector('a-scene');
+        const exitVRButton = document.getElementById('exitVR');
+
+        scene.addEventListener('enter-vr', function() {
+          exitVRButton.style.display = 'block';
+        });
+
+        scene.addEventListener('exit-vr', function() {
+          exitVRButton.style.display = 'none';
+        });
+
+        exitVRButton.addEventListener('click', function() {
+          if (scene.is('vr-mode')) {
+            scene.exitVR();
+          }
+        });
+
+        scene.addEventListener('loaded', () => {
+          document.getElementById('loadingScreen').style.display = 'none';
+        });
+
+        if (!navigator.xr) {
+          alert('VR is not supported on your device. You can still view the plans in 3D.');
+        }
+
+        function checkAuthAndRedirect(planName, planPremium) {
+          console.log('Checking authentication...');
+          const userData = localStorage.getItem('user');
+          console.log('User data:', userData);
+          
+          if (!userData) {
+            console.log('No user data found, redirecting to login');
+            if (scene.is('vr-mode')) {
+              scene.exitVR();
+            }
+            window.location.href = 'login.html';
+            return;
+          }
+
+          try {
+            const user = JSON.parse(userData);
+            console.log('Parsed user:', user);
+            
+            if (!user || !user.email) {
+              console.log('Invalid user data, redirecting to login');
+              if (scene.is('vr-mode')) {
+                scene.exitVR();
+              }
+              window.location.href = 'login.html';
+              return;
+            }
+            
+            console.log('User authenticated, redirecting to index');
+            if (scene.is('vr-mode')) {
+              scene.exitVR();
+            }
+            window.location.href = "index.html";
+          } catch (e) {
+            console.log('Error parsing user data:', e);
+            if (scene.is('vr-mode')) {
+              scene.exitVR();
+            }
+            window.location.href = 'login.html';
+          }
+        }
+
+        const planA = document.querySelector("#planA");
+        const planB = document.querySelector("#planB");
+        const planC = document.querySelector("#planC");
+
+        if (planA) {
+          planA.addEventListener("click", function() {
+            console.log('Plan A clicked');
+            checkAuthAndRedirect("Family Plan", 4500);
+          });
+        }
+
+        if (planB) {
+          planB.addEventListener("click", function() {
+            console.log('Plan B clicked');
+            checkAuthAndRedirect("Senior Plan", 3000);
+          });
+        }
+
+        if (planC) {
+          planC.addEventListener("click", function() {
+            console.log('Plan C clicked');
+            checkAuthAndRedirect("Basic Plan", 2000);
+          });
+        }
+
+        const hoverSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
+        hoverSound.volume = 0.3;
+
+        const clickSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
+        clickSound.volume = 0.5;
+
+        $('.hover-glow').hover(
+          function() {
+            $(this).addClass('hover-active');
+            hoverSound.play();
+          },
+          function() {
+            $(this).removeClass('hover-active');
+          }
+        );
+
+        $('.clickable').click(function() {
+          $(this).addClass('click-feedback');
+          clickSound.play();
+          setTimeout(() => {
+            $(this).removeClass('click-feedback');
+          }, 500);
+        });
+      });
+    </script>
+  </body>
+</html>

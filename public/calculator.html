@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Insurance Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body {
+            background: linear-gradient(-45deg, #000000,#000000, #902119, #ec723a);
+            background-size: 300% 300%;
+            animation: gradient 14s ease infinite;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }   
+        #logout{
+        background-color: rgb(255, 0, 0);
+        border-radius: 20px;
+        padding: 5px;
+        color: white;
+        border-radius: 20px;
+     }
+     
+        span {
+            display: inline-block;
+            font-size: 1.3rem;
+            font-family: cursive;
+            color: aliceblue;
+            margin: .9rem 3rem;
+        }
+        nav {
+            font-size: 1.2rem;
+        }
+        .nav-ul {
+            display: inline-flex;
+            position: absolute;
+            transform: translate(+10%);
+            top: 0;
+            right: 30px;
+            margin: .9rem;
+        }
+
+        nav a {
+            font-family: cursive;
+            color: #d4f3fd;
+            padding: .8rem;
+            justify-content: right;
+        } 
+
+        .active {
+            color: #b5fcb5;
+        }
+
+        nav a:hover {
+            color: darkturquoise;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        /* Custom styles */
+        .calculator-container {
+            background: #000000;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .calculator-container:hover {
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            transform: translateY(-5px);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .input-field {
+            border-color: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Remove up/down arrows from number inputs */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .popup-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .popup-overlay.active .popup-content {
+            transform: scale(1);
+        }
+        
+        .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.25rem;
+        }
+        
+        .popup-button {
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .popup-button.primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .popup-button.primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-2px);
+        }
+        
+        .popup-button.secondary {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+        
+        .popup-button.secondary:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+            transform: translateY(-2px);
+        }
+        
+        /* Button styles */
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .highlight {
+            position: relative;
+            display: inline-block;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+        
+        .plan-badge {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <span>LyfInsure</span>
+    </div>
+    <nav class="navbar">
+        <ul class="nav-ul">
+            <li class="nav"><a href="homepage.html" id="#1" class="active">Home</a></li>
+            <li class="nav"><a href="index.html" id="#1">Plans</a></li>
+            <li class="nav"><a href="vr.html" id="#1" class="contact">VR</a></li>
+            <li class="nav"><a href="dashboard.html" id="#1">Dashboard</a></li>
+            <li class="nav"><button id="logout"> Logout</button></li>
+
+        </ul>
+    </nav>
+    
+    <div class="max-w-4xl mx-auto p-4">
+        <div class="calculator-container bg-black bg-opacity-70">
+            <h2 class="text-xl font-bold text-white text-center mb-4">Buy Life Insurance </h2>
+
+            <form id="calculator-form">
+                <div class="space-y-4">
+                    <!-- Number of People Input -->
+                    <div>
+                        <label for="people" class="block text-sm font-semibold text-white mb-1">Number of People to Cover (Max-8)</label>
+                        <input type="number" id="people" name="people" min="1" max="10" value="1" class="w-full px-3 py-2 border rounded-lg input-field bg-gray-800 text-white" placeholder="Number of people" required>
+                    </div>
+
+                    <!-- Age Input -->
+                    <div>
+                        <label for="age" class="block text-sm font-semibold text-white mb-1">Primary Insured's Age</label>
+                        <input type="number" id="age" name="age" min="18" max="100" class="w-full px-3 py-2 border rounded-lg input-field bg-gray-800 text-white" placeholder="Enter age" required>
+                    </div>
+
+                    <!-- Extra Coverage Input -->
+                    <div>
+                        <label for="extraCoverage" class="block text-sm font-semibold text-white mb-1">Extra Coverage Amount (in ₹)</label>
+                        <input type="number" id="extraCoverage" name="extraCoverage" min="0" class="w-full px-3 py-2 border rounded-lg input-field bg-gray-800 text-white" placeholder="Enter extra coverage" required>
+                    </div>
+
+                    <!-- Current Plan Display -->
+                    <div class="bg-gray-800 bg-opacity-50 p-3 rounded-lg border border-gray-700">
+                        <h3 class="text-white font-semibold">Selected Plan: <span id="current-plan" class="text-blue-400">Basic Life Cover</span></h3>
+                    </div>
+
+                    <div class="flex justify-between gap-4">
+                        <button type="submit" class="btn flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition">Calculate Premium</button>
+                        <button type="button" id="reset-btn" class="btn flex-1 px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition">Reset</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Result Display -->
+            <div id="result" class="result-card mt-4">
+                <div class="plan-badge mb-2">Insurance Quote</div>
+                <h3 class="text-xl font-semibold">Your Estimated Premium</h3>
+                <p id="premium-amount" class="text-2xl font-bold mt-2 mb-3"></p>
+                <p class="text-sm text-gray-300 mb-4">(Monthly Premium)</p>
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div class="bg-black bg-opacity-20 p-2 rounded-lg">
+                        <p class="text-gray-200 text-xs">Plan Selected</p>
+                        <p id="selected-plan" class="text-base font-semibold"></p>
+                    </div>
+                    <div class="bg-black bg-opacity-20 p-2 rounded-lg">
+                        <p class="text-gray-200 text-xs">Coverage Period</p>
+                        <p id="duration" class="text-base font-semibold"></p>
+                    </div>
+                    <div class="bg-black bg-opacity-20 p-2 rounded-lg">
+                        <p class="text-gray-200 text-xs">Base Coverage</p>
+                        <p id="base-coverage" class="text-base font-semibold"></p>
+                    </div>
+                    <div class="bg-black bg-opacity-20 p-2 rounded-lg">
+                        <p class="text-gray-200 text-xs">Extra Coverage</p>
+                        <p id="extra-coverage" class="text-base font-semibold"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="buy-now-btn" class="btn px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition">Proceed to Purchase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Selection Popup -->
+    <div id="plan-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h3 class="text-lg font-bold mb-2">Family Coverage Recommended</h3>
+            <p class="text-gray-300">
+                We've noticed you're covering multiple people. Our <span class="highlight">Premium Family Shield</span> plan is recommended for families.
+            </p>
+            <div class="popup-buttons">
+                <button id="select-basic" class="popup-button secondary">Keep Basic Plan</button>
+                <button id="select-premium" class="popup-button primary">Select Family Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Senior Plan Popup -->
+    <div id="senior-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h3 class="text-lg font-bold mb-2">Senior Citizen Plan Recommended</h3>
+            <p class="text-gray-300">
+                Based on the age provided, our <span class="highlight">Senior Citizen Plus</span> plan is recommended for your needs.
+            </p>
+            <div class="popup-buttons">
+                <button id="select-basic-from-senior" class="popup-button secondary">Keep Basic Plan</button>
+                <button id="select-senior" class="popup-button primary">Select Senior Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $('#logout').click(() => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) {
+          window.location.href = "login.html";
+        }
+
+        // Global variables for plan details
+        const plans = {
+            basic: {
+                name: "Basic Life Cover",
+                basePremium: 2000,
+                baseCoverage: 1000000
+            },
+            premium: {
+                name: "Premium Family Shield",
+                basePremium: 4500,  // Updated to 4500/month
+                baseCoverage: 3000000  // Updated to 30L
+            },
+            senior: {
+                name: "Senior Citizen Plus",
+                basePremium: 3000,  // Updated to 3000/month
+                baseCoverage: 1500000  // Updated to 15L
+            }
+        };
+        
+        let selectedPlan = "basic";
+        
+        document.getElementById('people').addEventListener('change', function() {
+            const people = parseInt(this.value);
+            const age = parseInt(document.getElementById('age').value) || 0;
+            
+            checkAndUpdatePlan(people, age);
+        });
+        
+        document.getElementById('age').addEventListener('change', function() {
+            const age = parseInt(this.value);
+            const people = parseInt(document.getElementById('people').value);
+            
+             if (people === 1 && age >= 60) {
+                document.getElementById('senior-popup').classList.add('active');
+                return;
+            }
+        });
+        
+        function checkAndUpdatePlan(people, age) {
+            if (people === 1 && age >= 60) {
+                document.getElementById('senior-popup').classList.add('active');
+                return;
+            }
+            
+            if (people > 1 ) {
+                document.getElementById('plan-popup').classList.add('active');
+                return;
+            }
+            
+            if (people === 1 && age < 60) {
+                selectedPlan = "basic";
+                updatePlanDisplay();
+            }
+        }
+        
+        document.getElementById('select-basic').addEventListener('click', function() {
+            selectedPlan = "basic";
+            updatePlanDisplay();
+            document.getElementById('plan-popup').classList.remove('active');
+        });
+        
+        document.getElementById('select-premium').addEventListener('click', function() {
+            selectedPlan = "premium";
+            updatePlanDisplay();
+            document.getElementById('plan-popup').classList.remove('active');
+        });
+        
+        // Handle popup button clicks for senior plan
+        // document.getElementById('select-basic-from-senior').addEventListener('click', function() {
+        //     selectedPlan = "basic";
+        //     updatePlanDisplay();
+        //     document.getElementById('senior-popup').classList.remove('active');
+        // });
+        
+        document.getElementById('select-senior').addEventListener('click', function() {
+            selectedPlan = "senior";
+            updatePlanDisplay();
+            document.getElementById('senior-popup').classList.remove('active');
+        });
+        
+        // Update the plan display in the form
+        function updatePlanDisplay() {
+            document.getElementById('current-plan').textContent = plans[selectedPlan].name;
+        }
+        
+        // Handle form submission and calculate premium
+        document.getElementById('calculator-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Collect the form data
+            let age = parseInt(document.getElementById('age').value);
+            let extraCoverage = parseFloat(document.getElementById('extraCoverage').value);
+            let people = parseInt(document.getElementById('people').value);
+
+            // Validate inputs
+            if (age < 18 || extraCoverage < 0 || people < 1 || people>8) {
+                alert("Please enter valid information.");
+                return;
+            }
+           
+            
+            // Auto-select senior plan if needed
+            if (people === 1 && age >= 60 && selectedPlan !== "senior") {
+                selectedPlan = "senior";
+                updatePlanDisplay();
+            }
+
+            // Get selected plan details
+            let basePremium = plans[selectedPlan].basePremium;
+            let baseCoverage = plans[selectedPlan].baseCoverage;
+            
+            // Calculate premium multiplier based on number of people
+            let premiumMultiplier = 1;
+            // if(people>=3){
+            //     selectedPlan === "premium";
+            //     updatePlanDisplay();
+            // }
+            if (selectedPlan === "basic") {
+                if (people >=2) {
+                    premiumMultiplier = people;
+                } 
+            }
+            if (selectedPlan === "premium") {
+                if (people >= 5 ) {
+                    premiumMultiplier = 2;
+                }
+            }
+            
+            // Apply multiplier to base premium
+            let adjustedBasePremium = basePremium * premiumMultiplier;
+            
+            // The extra premium will be proportional to the extra coverage
+            let extraPremium = extraCoverage / 100;  
+
+            // Total premium calculation: base premium + extra premium
+            let totalPremium = adjustedBasePremium + extraPremium;
+
+            // Prepare result in JSON format
+            let resultData = {
+                totalPremium: totalPremium.toFixed(2),
+                baseCoverage: baseCoverage,
+                extraCoverage: extraCoverage,
+                selectedPlan: plans[selectedPlan].name + (premiumMultiplier > 1 ? ` (x${premiumMultiplier})` : ""),
+                duration: 5
+            };
+
+            // Show the result in a nice card
+            document.getElementById('premium-amount').textContent = `₹${resultData.totalPremium}/month`;
+            document.getElementById('selected-plan').textContent = resultData.selectedPlan;
+            document.getElementById('base-coverage').textContent = `₹${resultData.baseCoverage.toLocaleString()}`;
+            document.getElementById('extra-coverage').textContent = `₹${resultData.extraCoverage.toLocaleString()}`;
+            document.getElementById('duration').textContent = `${resultData.duration} years`;
+
+            // Display the result card with animation
+            const resultCard = document.getElementById('result');
+            resultCard.style.display = 'block';
+        });
+
+        // Handle reset functionality
+        document.getElementById('reset-btn').addEventListener('click', function () {
+            // Clear input fields
+            document.getElementById('calculator-form').reset();
+            
+            // Reset to default plan
+            selectedPlan = "basic";
+            updatePlanDisplay();
+
+            // Hide result card
+            document.getElementById('result').style.display = 'none';
+        });
+        
+        // Buy now button (for demo purposes)
+        document.getElementById('buy-now-btn').addEventListener('click', function() {
+            console.log('Proceed to Purchase clicked');
+            
+            // Get user data from localStorage
+            const userData = JSON.parse(localStorage.getItem('user'));
+            if (!userData) {
+                console.log('No user data found');
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Get the current plan details
+            const currentPlan = plans[selectedPlan];
+            console.log('Current plan:', currentPlan);
+            
+            const premium = document.getElementById('premium-amount').textContent;
+            const baseCoverage = document.getElementById('base-coverage').textContent;
+            const extraCoverage = document.getElementById('extra-coverage').textContent;
+            const duration = document.getElementById('duration').textContent;
+
+            console.log('Plan details:', {
+                premium,
+                baseCoverage,
+                extraCoverage,
+                duration
+            });
+
+            // Prepare purchase data
+            const purchaseData = {
+                userId: userData.email,
+                planName: currentPlan.name,
+                premium: premium,
+                baseCoverage: baseCoverage,
+                extraCoverage: extraCoverage,
+                duration: duration
+            };
+
+            console.log('Sending purchase data:', purchaseData);
+
+            // Send data to backend
+            $.ajax({
+                url: '../backend/savePurchase.php',
+                type: 'POST',
+                data: purchaseData,
+                dataType: 'json', // Expect JSON response
+                success: function(response) {
+                    console.log('Server response:', response);
+                    if (response && response.status === 'success') {
+                        // Redirect to confirmation page with purchase details
+                        const confirmationUrl = `confirmation.html?planName=${encodeURIComponent(currentPlan.name)}&premium=${encodeURIComponent(premium)}`;
+                        window.location.href = confirmationUrl;
+                    } else {
+                        alert("Error saving purchase: " + (response.message || 'Unknown error occurred'));
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX error:', {
+                        status: jqXHR.status,
+                        statusText: jqXHR.statusText,
+                        responseText: jqXHR.responseText,
+                        textStatus: textStatus,
+                        errorThrown: errorThrown
+                    });
+                    
+                    let errorMessage = "Error connecting to server. ";
+                    try {
+                        const errorResponse = JSON.parse(jqXHR.responseText);
+                        errorMessage += errorResponse.message || jqXHR.statusText;
+                    } catch (e) {
+                        errorMessage += jqXHR.statusText;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        });
+        
+        updatePlanDisplay();
+    </script>
+</body>
+</html>

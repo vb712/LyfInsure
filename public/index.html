@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard | Life Insurance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .plan-card {
+      transition: all 0.3s ease;
+      transform-origin: center;
+      height: 200px;
+      overflow: hidden;
+      position: relative;
+    }
+   
+    .plan-card:hover {
+      transform: scale(1.05);
+      z-index: 10;
+      height: auto;
+    }
+   
+    .plan-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+   
+    .plan-card:hover .plan-details {
+      max-height: 200px;
+    }
+    
+    /* Buy Now Button Styles */
+    .buy-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .buy-button::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: #fff;
+      transition: width 0.3s ease;
+    }
+    
+    .plan-card:hover .buy-button::after {
+      width: 100%;
+    }
+    
+    .buy-button-disappear {
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+    
+    .plan-card.hovered .buy-button-disappear {
+      opacity: 0;
+    }
+
+    /* Logout button styles */
+    .logout-btn {
+      background: linear-gradient(to right, #ff0000, #ff4d4d);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <nav>
+    <div class="logo">
+      <span>LyfInsure</span>
+    </div>
+    <ul class="nav-ul">
+      <li><a href="homepage.html" class="active">Home</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="#" id="plans-link">Plans</a></li>
+      <li><a href="vr.html">VR</a></li>
+      <li><a href="#" id="logout" class="logout-btn">Logout</a></li>
+    </ul>
+  </nav>
+ 
+  <!-- Plans Section -->
+  <main class="p-6">
+    <h2 class="text-xl text-center mb-6 text-white">Available Life Insurance Plans</h2>
+    <div id="plans" class="flex flex-wrap justify-center gap-6 items-center max-w-4xl mx-auto">
+      <!-- Plans will load here -->
+    </div>
+  </main>
+   
+  <script>
+    // Check login status
+    $(document).ready(function() {
+      // Check if user is logged in
+      const userData = localStorage.getItem('user');
+      console.log('User data from localStorage:', userData);
+      
+      if (!userData) {
+        console.log('No user data found');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userData);
+        console.log('Parsed user object:', user);
+        
+        if (!user || !user.email) {
+          console.log('Invalid user object or missing email');
+          localStorage.clear();
+          window.location.href = 'login.html';
+          return;
+        }
+      } catch (e) {
+        console.log('Error parsing user data:', e);
+        localStorage.clear();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Handle Plans link click
+      $('#plans-link').click(function(e) {
+        e.preventDefault();
+        const userData = localStorage.getItem('user');
+        console.log('Plans link clicked - User data:', userData);
+        
+        if (!userData) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        try {
+          const user = JSON.parse(userData);
+          if (!user || !user.email) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+            return;
+          }
+          window.location.href = 'calculator.html';
+        } catch (e) {
+          localStorage.clear();
+          window.location.href = 'login.html';
+        }
+      });
+
+      // Handle logout
+      $('#logout').click(function(e) {
+        e.preventDefault();
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+    });
+   
+    $.get('../backend/fetchPlans.php', function(data) {
+      const plans = JSON.parse(data);
+      $('#plans').empty();
+      plans.forEach(plan => {
+        const cardId = `plan-card-${Math.random().toString(36).substr(2, 9)}`;
+        $('#plans').append(`
+          <div id="${cardId}" class="plan-card bg-black p-4 rounded-xl shadow hover:shadow-lg transition w-72 text-center">
+            <h3 class="text-lg font-bold text-blue-500">${plan.name}</h3>
+            <p class="text-gray-200 mt-2">${plan.description}</p>
+            <p class="text-green-400 font-semibold mt-2">Premium: ₹${plan.premium}/year</p>
+            <div class="mt-4 text-center">
+              <button class="buy-button buy-button-disappear bg-transparent border border-gray-500 text-gray-400 hover:bg-gray-800 hover:text-white hover:border-transparent rounded-xl py-2 px-4 text-sm transition-all duration-300 transform hover:scale-105" onclick="window.location.href='calculator.html'">Buy Now</button>
+            </div>
+            <div class="plan-details mt-4 pt-3 border-t border-gray-700">
+              <h4 class="text-white font-semibold mb-2">Plan Details</h4>
+              <p class="text-gray-300 text-sm">${plan.details}</p>
+            </div>
+          </div>
+        `);
+      });
+    });
+  </script>
+</body>
+</html>

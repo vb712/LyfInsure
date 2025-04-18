@@ -1,0 +1,136 @@
+body {
+	background: linear-gradient(-45deg, #000000,#000000, #902119, #ec723a);
+	background-size: 300% 300%;
+	animation: gradient 14s ease infinite;
+   overflow: hidden;
+}   
+span{
+   display: inline-block;
+   font-size: 1.3rem;
+   font-family: cursive;
+   color: aliceblue;
+   margin: .9rem 3rem;
+   /* background-image: linear-gradient(to top, #0250c5 0%, #d43f8d 100%);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+    */
+}
+nav{
+   font-size: 1.2rem;
+}
+.nav-ul{
+   display: inline-flex;
+ position: absolute;
+ transform: translate(+10%);
+ top: 0;
+ right: 30px;
+ margin: .9rem;
+}
+
+nav a{
+   font-family: cursive;
+   color:#d4f3fd  ;
+   padding: .8rem;
+   justify-content: right;
+} 
+
+.active{
+color:#b5fcb5 ;
+}
+
+nav a:hover{
+   color: darkturquoise;
+}
+body::after{
+    content: "";
+    width: 100%;
+    height: 100px;
+    bottom:0;
+    position: absolute;
+    background-image: url(../waved.svg);
+    animation: gradient 14s ease infinite;
+ }
+    /* Animated Stuff */
+ 
+    .box div {
+    height: 60px;
+    width: 60px;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    animation: gradient 14s ease infinite;
+    background: rgba(255,255,255,.5);
+    border-radius: 15px;
+    }
+    .box div:nth-child(1) {
+    top: 20%;
+    left: 20%;
+    animation: animate 11s ease infinite;
+    }
+    .box div:nth-child(2) {
+    top: 26%;
+    left: 89%;
+    animation: animate 12s ease infinite;
+    }
+    .box div:nth-child(3) {
+    top: 80%;
+    left: 90%;
+    animation: animate 10s linear infinite;
+    }
+    .box div:nth-child(4) {
+    top: 65%;
+    left: 75%;
+    animation: animate 7s linear infinite;
+    }
+    .box div:nth-child(5) {
+    top: 90%;
+    left: 10%;
+    animation: animate 6s linear infinite;
+    }
+    .box div:nth-child(6) {
+    top: 30%;
+    left: 60%;
+    animation: animate 5s linear infinite;
+    }
+    .box div:nth-child(7) {
+    top: 70%;
+    left: 33%;
+    animation: animate 4s linear infinite;
+    }
+    .box div:nth-child(8) {
+    top: 75%;
+    left: 60%;
+    animation: animate 7s linear infinite;
+    }
+    .box div:nth-child(9) {
+    top: 23%;
+    left: 50%;
+    animation: animate 12s linear infinite;
+    }
+    .box div:nth-child(10) {
+    top: 35%;
+    left: 7%;
+    animation: animate 14s linear infinite;
+    }
+    @keyframes animate {
+    0% {
+    transform: scale(0) translateY(0) rotate(50deg);
+    }
+    100% {
+       transform: scale(0.5) translateY(-250px) rotate(360deg);
+    }
+ }
+ 
+
+@keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+

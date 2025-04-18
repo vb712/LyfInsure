@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register | Life Insurance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+      body {
+	background: linear-gradient(-45deg, #000000,#000000, #902119, #ec723a);
+	background-size: 300% 300%;
+	animation: gradient 14s ease infinite;
+   overflow: hidden;
+}   
+span{
+   display: inline-block;
+   font-size: 1.3rem;
+   font-family: cursive;
+   color: aliceblue;
+   margin: .9rem 3rem;
+}
+nav{
+   font-size: 1.2rem;
+}
+.nav-ul{
+   display: inline-flex;
+ position: absolute;
+ transform: translate(+10%);
+ top: 0;
+ right: 30px;
+ margin: .9rem;
+}
+
+nav a{
+   font-family: cursive;
+   color:#d4f3fd  ;
+   padding: .8rem;
+   justify-content: right;
+} 
+
+.active{
+color:#b5fcb5 ;
+}
+
+nav a:hover{
+   color: darkturquoise;
+}
+
+/* Login button styles */
+.login-btn {
+    background: linear-gradient(to right, #4CAF50, #45a049);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    color: white;
+}
+
+@keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="logo">
+    <span>LyfInsure</span>
+  </div>
+  <nav class="navbar">
+    <ul class="nav-ul">
+        <li class="nav"><a href="homepage.html" id="#1" class="active">Home</a></li>
+        <li class="nav"><a href="dashboard.html" id="#1">Dashboard</a></li>
+        <li class="nav"><a href="index.html" id="#1">Plans</a></li>
+        <li class="nav"><a href="vr.html" id="#1" class="contact">VR</a></li>
+        <li class="nav"><a href="login.html" id="#1" class="login-btn">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="flex mt-10 items-center justify-center">
+    <div class="bg-black bg-opacity-50 rounded-2xl shadow-xl p-8 w-full max-w-md">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">Create Account</h2>
+      
+      <form id="registerForm" class="space-y-4">
+        <div>
+          <input id="regName" type="text" placeholder="Full Name" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+        
+        <div>
+          <input id="regEmail" type="email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+        
+        <div>
+          <input id="regPass" type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+
+        <div>
+          <input id="regConfirmPass" type="password" placeholder="Confirm Password" class="w-full p-3 border border-gray-300 rounded-lg bg-white bg-opacity-90" required />
+        </div>
+
+        <div class="flex items-center">
+          <input id="terms" type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300" required />
+          <label for="terms" class="ml-2 text-white text-sm">
+            I agree to the <a href="#" class="text-blue-400 hover:text-blue-300">Terms and Conditions</a>
+          </label>
+        </div>
+
+        <button type="submit" id="register" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium">
+          Register
+        </button>
+
+        <div class="text-center">
+          <p class="text-white">Already have an account?</p>
+          <a href="login.html" class="text-blue-400 hover:text-blue-300 font-medium">Login here</a>
+        </div>
+
+        <p id="regMsg" class="text-sm text-red-600 text-center"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      $('#registerForm').submit(function(e) {
+        e.preventDefault();
+        
+        const name = $('#regName').val();
+        const email = $('#regEmail').val();
+        const password = $('#regPass').val();
+        const confirmPass = $('#regConfirmPass').val();
+
+        // Validate password match
+        if (password !== confirmPass) {
+          $('#regMsg').text('Passwords do not match');
+          return;
+        }
+
+        // Validate password strength
+        if (password.length < 8) {
+          $('#regMsg').text('Password must be at least 8 characters long');
+          return;
+        }
+
+        console.log('Attempting registration with:', { name, email });
+
+        $.ajax({
+          url: '../backend/register.php',
+          type: 'POST',
+          data: {
+            name: name,
+            email: email,
+            password: password
+          },
+          dataType: 'json',
+          success: function(response) {
+            console.log('Server response:', response);
+            if (response.status === 'success') {
+              $('#regMsg').text('Registration successful! Redirecting to login...');
+              setTimeout(() => {
+                window.location.href = 'login.html';
+              }, 2000);
+            } else {
+              $('#regMsg').text(response.message || 'Registration failed');
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('AJAX error:', status, error);
+            console.log('Response:', xhr.responseText);
+            $('#regMsg').text('Error processing registration');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html> 
